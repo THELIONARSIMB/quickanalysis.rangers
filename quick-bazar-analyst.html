@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quick Bazar Analyst.in</title>
+  <style>
+    /* Galaxy background effect */
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #0b0033 0%, #000000 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Animated stars background */
+    .stars {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .stars::before {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 
+        25px 50px white, 75px 120px white, 150px 80px white, 200px 30px white,
+        300px 150px white, 350px 60px white, 400px 180px white, 450px 90px white,
+        500px 200px white, 550px 40px white, 600px 170px white, 650px 100px white,
+        700px 220px white, 750px 70px white, 800px 190px white, 850px 120px white,
+        900px 250px white, 950px 80px white, 1000px 210px white, 1050px 140px white,
+        1100px 270px white, 1150px 90px white, 1200px 230px white, 1250px 160px white,
+        1300px 290px white, 1350px 110px white, 1400px 250px white, 1450px 180px white,
+        50px 300px white, 100px 350px white, 200px 320px white, 250px 380px white,
+        350px 340px white, 400px 400px white, 500px 360px white, 550px 420px white,
+        650px 380px white, 700px 440px white, 800px 400px white, 850px 460px white;
+      animation: sparkle 3s linear infinite;
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Galaxy nebula effect */
+    .nebula {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(30, 144, 255, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 60% 20%, rgba(255, 20, 147, 0.2) 0%, transparent 50%);
+      animation: nebulaMove 20s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    @keyframes nebulaMove {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    /* Website title */
+    h1 {
+      position: relative;
+      z-index: 1;
+      font-size: 3.5rem;
+      font-weight: bold;
+      margin-bottom: 50px;
+      text-shadow: 
+        0px 0px 10px #93c5fd, 
+        0px 0px 20px #3b82f6,
+        0px 0px 30px #1d4ed8;
+      animation: glow 2s ease-in-out infinite alternate;
+      text-align: center;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0px 0px 10px #93c5fd, 0px 0px 20px #3b82f6, 0px 0px 30px #1d4ed8; }
+      to { text-shadow: 0px 0px 15px #93c5fd, 0px 0px 25px #3b82f6, 0px 0px 35px #1d4ed8; }
+    }
+
+    /* Button container */
+    .button-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Button styling */
+    button {
+      padding: 18px 35px;
+      font-size: 1.4rem;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    button:active {
+      transform: translateY(-1px) scale(1.02);
+    }
+
+    /* Colorful gradient buttons */
+    #btnX {
+      background: linear-gradient(135deg, #ff6a00, #ee0979, #ff006e);
+      box-shadow: 0 5px 15px rgba(255, 106, 0, 0.4);
+    }
+
+    #btnX:hover {
+      box-shadow: 0 8px 25px rgba(255, 106, 0, 0.6);
+    }
+
+    #btnY {
+      background: linear-gradient(135deg, #00f260, #0575e6, #00d4ff);
+      box-shadow: 0 5px 15px rgba(0, 242, 96, 0.4);
+    }
+
+    #btnY:hover {
+      box-shadow: 0 8px 25px rgba(0, 242, 96, 0.6);
+    }
+
+    #btnZ {
+      background: linear-gradient(135deg, #f7971e, #ffd200, #ffaa00);
+      box-shadow: 0 5px 15px rgba(247, 151, 30, 0.4);
+    }
+
+    #btnZ:hover {
+      box-shadow: 0 8px 25px rgba(247, 151, 30, 0.6);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+      }
+      
+      button {
+        padding: 15px 25px;
+        font-size: 1.2rem;
+      }
+      
+      .button-container {
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Galaxy background effects -->
+  <div class="stars"></div>
+  <div class="nebula"></div>
+
+  <!-- Main content -->
+  <h1>Quick Bazar Analyst.in</h1>
+
+
+  <div class="button-container">
+    <button id="btnX">OPERATION ANALYSIS</button>
+    <button id="btnY">INVENTORY ANALYSIS</button>
+    <button id="btnZ">DELIEVERY OPERATION</button>
+</div>
+<script>
+  document.getElementById('btnX').onclick = function() {
+    window.location.href = 'OPERATION ANALYSIS.html';
+  };
+  document.getElementById('btnY').onclick = function() {
+    window.location.href = 'INVENTORY ANALYSIS.html';
+  };
+  document.getElementById('btnZ').onclick = function() {
+    window.location.href = 'DELIEVERY OPERATION ANALYSIS.html';
+  };
+</script>
+  
+  <!-- <div class="button-container">
+    <button id="btnX" src = "OPERATION ANALYSIS.html">OPERATION ANALYSIS</button>
+    <button id="btnY" src = "INVENTORY ANALYSIS.html">INVENTORY ANALYSIS</button>
+    <button id="btnZ" src = "DELIEVERY OPERATION.html">DELIEVERY OPERATION</button>
+  </div> -->
+
+  <!-- <script>
+    // Button click handlers with enhanced interactions
+    document.getElementById('btnX').addEventListener('click', function() {
+      this.style.animation = 'pulse 0.3s ease-in-out';
+      setTimeout(() => this.style.animation = '', 300);
+      alert('Button X clicked! You can customize this action.');
+    });
+
+    document.getElementById('btnY').addEventListener('click', function() {
+      this.style.animation = 'pulse 0.3s ease-in-out';
+      setTimeout(() => this.style.animation = '', 300);
+      alert('Button Y clicked! You can customize this action.');
+    });
+
+    document.getElementById('btnZ').addEventListener('click', function() {
+      this.style.animation = 'pulse 0.3s ease-in-out';
+      setTimeout(() => this.style.animation = '', 300);
+      alert('Button Z clicked! You can customize this action.');
+    });
+
+    // Add pulse animation for button clicks
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script> -->
+
+
+   <!-- Footer with special person names -->
+  <footer style="position: absolute; bottom: 15px; width: 100%; text-align: center; z-index: 2; font-size: 1.1rem; color: #ffd200;">
+    TEAM MEMBERS: ADITYA KUMAR(B24BS2013){LEADER}, SHUBHAM CHOUDHARY(B24BS2349), RAUSHAN KUMAR(B24BS2281), RAJ RAUSHAN(B24BS2272)
+  </footer>
+
+  <div style="position: absolute; left: 20px; top: 20px; z-index: 2; font-size: 1.2rem; color: #fff; writing-mode: vertical-lr; text-align: center;">
+  BY TEAM RECOVERY RANGERS
+</div>
+   <!-- <div style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); z-index: 2; font-size: 1.2rem; color: #fff; writing-mode: vertical-lr; text-align: center;">
+    BY TEAM RECOVERY RANGERS
+  </div> -->
+</body>
+</body>
+</html>

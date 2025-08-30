@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickBazaar Inventory Analytics - City Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #ffffff;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* City Skyline Background */
+.city-bg {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 300px;
+    z-index: -1;
+    background: linear-gradient(180deg, rgba(15, 52, 96, 0.8) 0%, rgba(15, 52, 96, 1) 100%);
+}
+
+.city-skyline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Building animations */
+.building {
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    border-top: 2px solid #3498db;
+    animation: buildingGlow 3s ease-in-out infinite alternate;
+}
+
+.building::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 20%;
+    right: 20%;
+    height: 60%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 15px,
+        rgba(52, 152, 219, 0.3) 15px,
+        rgba(52, 152, 219, 0.3) 18px
+    ),
+    repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 20px,
+        rgba(52, 152, 219, 0.2) 20px,
+        rgba(52, 152, 219, 0.2) 23px
+    );
+}
+
+@keyframes buildingGlow {
+    from { border-top-color: #3498db; box-shadow: 0 0 20px rgba(52, 152, 219, 0.3); }
+    to { border-top-color: #e74c3c; box-shadow: 0 0 30px rgba(231, 76, 60, 0.5); }
+}
+
+/* Moving vehicles/data points */
+.data-vehicle {
+    position: absolute;
+    width: 8px;
+    height: 4px;
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+    border-radius: 2px;
+    animation: moveVehicle 8s linear infinite;
+    top: 50%;
+}
+
+@keyframes moveVehicle {
+    from { left: -20px; }
+    to { left: calc(100% + 20px); }
+}
+
+/* Floating data particles */
+.data-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(52, 152, 219, 0.8);
+    border-radius: 50%;
+    animation: floatData 6s ease-in-out infinite;
+}
+
+@keyframes floatData {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-30px) scale(1.2); opacity: 1; }
+}
+
+/* Main Container */
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 20px;
+    background: rgba(26, 26, 46, 0.9);
+    border-radius: 20px;
+    border: 3px solid rgba(52, 152, 219, 0.4);
+    backdrop-filter: blur(15px);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
+    animation: headerPulse 4s ease-in-out infinite;
+}
+
+@keyframes headerPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(180deg); }
+}
+
+.header h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
+}
+
+.header p {
+    font-size: 1.4rem;
+    color: #bdc3c7;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.header-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.header-stat {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.header-stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.header-stat-label {
+    font-size: 0.9rem;
+    color: #bdc3c7;
+    text-transform: uppercase;
+}
+
+/* Controls Panel */
+.controls {
+    background: rgba(44, 62, 80, 0.9);
+    border: 2px solid rgba(52, 152, 219, 0.4);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(10px);
+    position: relative;
+}
+
+.controls::before {
+    content: '🏙️';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: #2c3e50;
+    padding: 10px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+.controls-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    align-items: end;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group label {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #3498db;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+select, input[type="number"] {
+    background: rgba(26, 26, 46, 0.8);
+    border: 2px solid rgba(52, 152, 219, 0.5);
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    transform: translateY(-2px);
+}
+
+button {
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+/* Metrics Grid */
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(52, 152, 219, 0.1));
+    border: 2px solid rgba(52, 152, 219, 0.4);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+}
+
+.metric-card:hover::before {
+    transform: scaleX(1);
+}
+
+.metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(52, 152, 219, 0.3);
+    border-color: #3498db;
+}
+
+.metric-value {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #2ecc71;
+    text-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    margin-bottom: 15px;
+    display: block;
+}
+
+.metric-label {
+    font-size: 1.1rem;
+    color: #bdc3c7;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.metric-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Charts Grid */
+.charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.chart-container {
+    background: rgba(44, 62, 80, 0.9);
+    border: 2px solid rgba(52, 152, 219, 0.4);
+    border-radius: 15px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.chart-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+    border-radius: 15px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.chart-container:hover::before {
+    opacity: 0.3;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+}
+
+.chart-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 25px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.chart-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 2px;
+}
+
+/* Data Table */
+.data-table {
+    background: rgba(44, 62, 80, 0.9);
+    border: 2px solid rgba(52, 152, 219, 0.4);
+    border-radius: 15px;
+    padding: 30px;
+    margin-top: 50px;
+    backdrop-filter: blur(10px);
+    overflow-x: auto;
+}
+
+.data-table h3 {
+    color: #3498db;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+    transition: all 0.2s ease;
+}
+
+th {
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+td {
+    color: #ffffff;
+}
+
+tr:nth-child(even) {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+tr:hover {
+    background: rgba(52, 152, 219, 0.15);
+    transform: scale(1.02);
+}
+
+/* Status colors */
+.stockout-none { color: #2ecc71; font-weight: bold; }
+.stockout-low { color: #f39c12; font-weight: bold; }
+.stockout-medium { color: #e67e22; font-weight: bold; }
+.stockout-high { color: #e74c3c; font-weight: bold; }
+
+/* Performance indicators */
+.performance-excellent { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.performance-good { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+.performance-average { background: rgba(230, 126, 34, 0.2); color: #e67e22; }
+.performance-poor { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .charts { grid-template-columns: 1fr; }
+    .header h1 { font-size: 2.8rem; }
+}
+
+@media (max-width: 768px) {
+    .controls-grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .header h1 { font-size: 2.2rem; }
+    .header p { font-size: 1.1rem; }
+    .charts { grid-template-columns: 1fr; }
+}
+
+/* Loading animation */
+.loading {
+    display: none;
+    text-align: center;
+    padding: 50px;
+    color: #3498db;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(52, 152, 219, 0.3);
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 25px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Notification system */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+</style>
+</head>
+<body>
+<!-- City Background -->
+<div class="city-bg">
+    <div class="city-skyline" id="cityscape"></div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>🏙️ QuickBazaar Inventory Analytics</h1>
+        <p>City Dashboard - Smart Inventory Management & Stockout Monitoring</p>
+        <div class="header-stats">
+            <div class="header-stat">
+                <div class="header-stat-value">172</div>
+                <div class="header-stat-label">Total Stockouts</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-value">9</div>
+                <div class="header-stat-label">Product Categories</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-value">4.8</div>
+                <div class="header-stat-label">Avg Stockouts</div>
+            </div>
+            <div class="header-stat">
+                <div class="header-stat-value">4</div>
+                <div class="header-stat-label">Weeks Tracked</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="controls-title">🔧 Inventory Control Center</div>
+        <div class="controls-grid">
+            <div class="control-group">
+                <label>📦 Product Category:</label>
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>📅 Week Filter:</label>
+                <select id="weekFilter">
+                    <option value="all">All Weeks</option>
+                    <option value="Week 1">Week 1</option>
+                    <option value="Week 2">Week 2</option>
+                    <option value="Week 3">Week 3</option>
+                    <option value="Week 4">Week 4</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>🚨 Min Stockouts:</label>
+                <input type="number" id="minStockouts" placeholder="0" min="0" max="10">
+            </div>
+            <div class="control-group">
+                <label>📊 Max Stockouts:</label>
+                <input type="number" id="maxStockouts" placeholder="10" min="0" max="10">
+            </div>
+            <div class="control-group">
+                <button onclick="applyFilters()">🔍 Apply Filters</button>
+            </div>
+            <div class="control-group">
+                <button onclick="resetFilters()">🔄 Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <p>Processing inventory data...</p>
+    </div>
+
+    <div class="metrics" id="metrics">
+        <div class="metric-card">
+            <span class="metric-icon">📦</span>
+            <span class="metric-value" id="totalStockouts">172</span>
+            <div class="metric-label">Total Stockouts</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-icon">📊</span>
+            <span class="metric-value" id="avgStockouts">4.8</span>
+            <div class="metric-label">Average Stockouts</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-icon">🏆</span>
+            <span class="metric-value" id="bestCategory">Beauty</span>
+            <div class="metric-label">Best Category</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-icon">⚠️</span>
+            <span class="metric-value" id="worstCategory">Books</span>
+            <div class="metric-label">Worst Category</div>
+        </div>
+    </div>
+
+    <div class="charts">
+        <div class="chart-container">
+            <div class="chart-title">📈 Stockouts by Category</div>
+            <div id="categoryChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">📅 Weekly Stockout Trends</div>
+            <div id="weeklyChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">🎯 Category Performance Matrix</div>
+            <div id="heatmapChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">📊 Stockout Distribution</div>
+            <div id="distributionChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">🔄 Performance Comparison</div>
+            <div id="performanceChart"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">📉 Risk Assessment</div>
+            <div id="riskChart"></div>
+        </div>
+    </div>
+
+    <div class="data-table">
+        <h3>🗂️ Inventory Data Overview</h3>
+        <p style="text-align: center; color: #bdc3c7; margin-bottom: 25px;">
+            Showing <span id="recordCount">36</span> records across all categories and weeks
+        </p>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Product Category</th>
+                    <th>Week</th>
+                    <th>Stockout Incidents</th>
+                    <th>Stockout Level</th>
+                    <th>Performance Score</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="notification" id="notification">
+    <span id="notificationText">Filters applied successfully!</span>
+</div>
+
+<script>
+// Embedded data
+const originalData = [{"ProductCategory": "Electronics", "Week": "Week 1", "StockoutIncidents": 8, "Week_Number": 1, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Electronics", "Week": "Week 2", "StockoutIncidents": 2, "Week_Number": 2, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Electronics", "Week": "Week 3", "StockoutIncidents": 1, "Week_Number": 3, "Stockout_Level": "Low", "Performance_Score": 8}, {"ProductCategory": "Electronics", "Week": "Week 4", "StockoutIncidents": 8, "Week_Number": 4, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Groceries", "Week": "Week 1", "StockoutIncidents": 8, "Week_Number": 1, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Groceries", "Week": "Week 2", "StockoutIncidents": 0, "Week_Number": 2, "Stockout_Level": "None", "Performance_Score": 9}, {"ProductCategory": "Groceries", "Week": "Week 3", "StockoutIncidents": 5, "Week_Number": 3, "Stockout_Level": "Medium", "Performance_Score": 4}, {"ProductCategory": "Groceries", "Week": "Week 4", "StockoutIncidents": 9, "Week_Number": 4, "Stockout_Level": "High", "Performance_Score": 0}, {"ProductCategory": "Fashion", "Week": "Week 1", "StockoutIncidents": 7, "Week_Number": 1, "Stockout_Level": "High", "Performance_Score": 2}, {"ProductCategory": "Fashion", "Week": "Week 2", "StockoutIncidents": 2, "Week_Number": 2, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Fashion", "Week": "Week 3", "StockoutIncidents": 8, "Week_Number": 3, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Fashion", "Week": "Week 4", "StockoutIncidents": 1, "Week_Number": 4, "Stockout_Level": "Low", "Performance_Score": 8}, {"ProductCategory": "Beauty", "Week": "Week 1", "StockoutIncidents": 5, "Week_Number": 1, "Stockout_Level": "Medium", "Performance_Score": 4}, {"ProductCategory": "Beauty", "Week": "Week 2", "StockoutIncidents": 0, "Week_Number": 2, "Stockout_Level": "None", "Performance_Score": 9}, {"ProductCategory": "Beauty", "Week": "Week 3", "StockoutIncidents": 6, "Week_Number": 3, "Stockout_Level": "Medium", "Performance_Score": 3}, {"ProductCategory": "Beauty", "Week": "Week 4", "StockoutIncidents": 2, "Week_Number": 4, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Home & Kitchen", "Week": "Week 1", "StockoutIncidents": 6, "Week_Number": 1, "Stockout_Level": "Medium", "Performance_Score": 3}, {"ProductCategory": "Home & Kitchen", "Week": "Week 2", "StockoutIncidents": 3, "Week_Number": 2, "Stockout_Level": "Low", "Performance_Score": 6}, {"ProductCategory": "Home & Kitchen", "Week": "Week 3", "StockoutIncidents": 8, "Week_Number": 3, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Home & Kitchen", "Week": "Week 4", "StockoutIncidents": 4, "Week_Number": 4, "Stockout_Level": "Medium", "Performance_Score": 5}, {"ProductCategory": "Sports & Outdoors", "Week": "Week 1", "StockoutIncidents": 2, "Week_Number": 1, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Sports & Outdoors", "Week": "Week 2", "StockoutIncidents": 7, "Week_Number": 2, "Stockout_Level": "High", "Performance_Score": 2}, {"ProductCategory": "Sports & Outdoors", "Week": "Week 3", "StockoutIncidents": 5, "Week_Number": 3, "Stockout_Level": "Medium", "Performance_Score": 4}, {"ProductCategory": "Sports & Outdoors", "Week": "Week 4", "StockoutIncidents": 1, "Week_Number": 4, "Stockout_Level": "Low", "Performance_Score": 8}, {"ProductCategory": "Books", "Week": "Week 1", "StockoutIncidents": 2, "Week_Number": 1, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Books", "Week": "Week 2", "StockoutIncidents": 7, "Week_Number": 2, "Stockout_Level": "High", "Performance_Score": 2}, {"ProductCategory": "Books", "Week": "Week 3", "StockoutIncidents": 9, "Week_Number": 3, "Stockout_Level": "High", "Performance_Score": 0}, {"ProductCategory": "Books", "Week": "Week 4", "StockoutIncidents": 6, "Week_Number": 4, "Stockout_Level": "Medium", "Performance_Score": 3}, {"ProductCategory": "Toys", "Week": "Week 1", "StockoutIncidents": 9, "Week_Number": 1, "Stockout_Level": "High", "Performance_Score": 0}, {"ProductCategory": "Toys", "Week": "Week 2", "StockoutIncidents": 5, "Week_Number": 2, "Stockout_Level": "Medium", "Performance_Score": 4}, {"ProductCategory": "Toys", "Week": "Week 3", "StockoutIncidents": 0, "Week_Number": 3, "Stockout_Level": "None", "Performance_Score": 9}, {"ProductCategory": "Toys", "Week": "Week 4", "StockoutIncidents": 8, "Week_Number": 4, "Stockout_Level": "High", "Performance_Score": 1}, {"ProductCategory": "Furniture", "Week": "Week 1", "StockoutIncidents": 2, "Week_Number": 1, "Stockout_Level": "Low", "Performance_Score": 7}, {"ProductCategory": "Furniture", "Week": "Week 2", "StockoutIncidents": 4, "Week_Number": 2, "Stockout_Level": "Medium", "Performance_Score": 5}, {"ProductCategory": "Furniture", "Week": "Week 3", "StockoutIncidents": 6, "Week_Number": 3, "Stockout_Level": "Medium", "Performance_Score": 3}, {"ProductCategory": "Furniture", "Week": "Week 4", "StockoutIncidents": 6, "Week_Number": 4, "Stockout_Level": "Medium", "Performance_Score": 3}];
+const categoryStats = [{"ProductCategory": "Beauty", "Total_Stockouts": 13, "Avg_Stockouts": 3.25, "Max_Stockouts": 6, "Min_Stockouts": 0, "Avg_Performance": 5.75}, {"ProductCategory": "Books", "Total_Stockouts": 24, "Avg_Stockouts": 6.0, "Max_Stockouts": 9, "Min_Stockouts": 2, "Avg_Performance": 3.0}, {"ProductCategory": "Electronics", "Total_Stockouts": 19, "Avg_Stockouts": 4.75, "Max_Stockouts": 8, "Min_Stockouts": 1, "Avg_Performance": 4.25}, {"ProductCategory": "Fashion", "Total_Stockouts": 18, "Avg_Stockouts": 4.5, "Max_Stockouts": 8, "Min_Stockouts": 1, "Avg_Performance": 4.5}, {"ProductCategory": "Furniture", "Total_Stockouts": 18, "Avg_Stockouts": 4.5, "Max_Stockouts": 6, "Min_Stockouts": 2, "Avg_Performance": 4.5}, {"ProductCategory": "Groceries", "Total_Stockouts": 22, "Avg_Stockouts": 5.5, "Max_Stockouts": 9, "Min_Stockouts": 0, "Avg_Performance": 3.5}, {"ProductCategory": "Home & Kitchen", "Total_Stockouts": 21, "Avg_Stockouts": 5.25, "Max_Stockouts": 8, "Min_Stockouts": 3, "Avg_Performance": 3.75}, {"ProductCategory": "Sports & Outdoors", "Total_Stockouts": 15, "Avg_Stockouts": 3.75, "Max_Stockouts": 7, "Min_Stockouts": 1, "Avg_Performance": 5.25}, {"ProductCategory": "Toys", "Total_Stockouts": 22, "Avg_Stockouts": 5.5, "Max_Stockouts": 9, "Min_Stockouts": 0, "Avg_Performance": 3.5}];
+let filteredData = [...originalData];
+
+// Initialize city skyline
+function createCityscape() {
+    const cityscape = document.getElementById('cityscape');
+    const buildings = 15;
+
+    for (let i = 0; i < buildings; i++) {
+        const building = document.createElement('div');
+        building.className = 'building';
+        building.style.left = (i * (100 / buildings)) + '%';
+        building.style.width = (100 / buildings) * 0.8 + '%';
+        building.style.height = (Math.random() * 150 + 80) + 'px';
+        building.style.animationDelay = (i * 0.2) + 's';
+        cityscape.appendChild(building);
+    }
+
+    // Add moving data vehicles
+    for (let i = 0; i < 8; i++) {
+        const vehicle = document.createElement('div');
+        vehicle.className = 'data-vehicle';
+        vehicle.style.top = (Math.random() * 200 + 50) + 'px';
+        vehicle.style.animationDelay = (i * 1) + 's';
+        vehicle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+        cityscape.appendChild(vehicle);
+    }
+
+    // Add floating data particles
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'data-particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 250 + 'px';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+        cityscape.appendChild(particle);
+    }
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    createCityscape();
+    setupFilters();
+    renderDashboard();
+});
+
+function setupFilters() {
+    const categories = [...new Set(originalData.map(d => d.ProductCategory))];
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.text = category;
+        categoryFilter.appendChild(option);
+    });
+}
+
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
+    notificationText.textContent = message;
+    notification.classList.add('show');
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function applyFilters() {
+    showLoading();
+
+    const category = document.getElementById('categoryFilter').value;
+    const week = document.getElementById('weekFilter').value;
+    const minStockouts = parseInt(document.getElementById('minStockouts').value) || 0;
+    const maxStockouts = parseInt(document.getElementById('maxStockouts').value) || 10;
+
+    filteredData = originalData.filter(record => {
+        const matchesCategory = category === 'all' || record.ProductCategory === category;
+        const matchesWeek = week === 'all' || record.Week === week;
+        const matchesStockouts = record.StockoutIncidents >= minStockouts && record.StockoutIncidents <= maxStockouts;
+
+        return matchesCategory && matchesWeek && matchesStockouts;
+    });
+
+    setTimeout(() => {
+        renderDashboard();
+        hideLoading();
+        showNotification(`Filters applied! Showing ${filteredData.length} records.`);
+    }, 500);
+}
+
+function resetFilters() {
+    document.getElementById('categoryFilter').value = 'all';
+    document.getElementById('weekFilter').value = 'all';
+    document.getElementById('minStockouts').value = '';
+    document.getElementById('maxStockouts').value = '';
+
+    filteredData = [...originalData];
+    renderDashboard();
+    showNotification('All filters reset!');
+}
+
+function updateMetrics() {
+    const totalStockouts = filteredData.reduce((sum, record) => sum + record.StockoutIncidents, 0);
+    const avgStockouts = filteredData.length > 0 ? totalStockouts / filteredData.length : 0;
+
+    // Find best and worst performing categories from filtered data
+    const categoryTotals = filteredData.reduce((acc, record) => {
+        acc[record.ProductCategory] = (acc[record.ProductCategory] || 0) + record.StockoutIncidents;
+        return acc;
+    }, {});
+
+    const sortedCategories = Object.entries(categoryTotals).sort((a, b) => a[1] - b[1]);
+    const bestCategory = sortedCategories.length > 0 ? sortedCategories[0][0] : 'N/A';
+    const worstCategory = sortedCategories.length > 0 ? sortedCategories[sortedCategories.length - 1][0] : 'N/A';
+
+    document.getElementById('totalStockouts').textContent = totalStockouts;
+    document.getElementById('avgStockouts').textContent = avgStockouts.toFixed(1);
+    document.getElementById('bestCategory').textContent = bestCategory;
+    document.getElementById('worstCategory').textContent = worstCategory;
+    document.getElementById('recordCount').textContent = filteredData.length;
+}
+
+function renderCharts() {
+    // Category Stockouts Chart
+    const categoryTotals = filteredData.reduce((acc, record) => {
+        acc[record.ProductCategory] = (acc[record.ProductCategory] || 0) + record.StockoutIncidents;
+        return acc;
+    }, {});
+
+    Plotly.newPlot('categoryChart', [{
+        x: Object.keys(categoryTotals),
+        y: Object.values(categoryTotals),
+        type: 'bar',
+        marker: {
+            color: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#95a5a6'],
+            line: { color: 'rgba(255,255,255,0.3)', width: 2 }
+        }
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        xaxis: { gridcolor: 'rgba(52,152,219,0.2)', tickangle: -45 },
+        yaxis: { gridcolor: 'rgba(52,152,219,0.2)', title: 'Total Stockouts' },
+        margin: { l: 60, r: 20, t: 20, b: 100 }
+    });
+
+    // Weekly Trends Chart
+    const weeklyTotals = filteredData.reduce((acc, record) => {
+        acc[record.Week] = (acc[record.Week] || 0) + record.StockoutIncidents;
+        return acc;
+    }, {});
+
+    Plotly.newPlot('weeklyChart', [{
+        x: Object.keys(weeklyTotals),
+        y: Object.values(weeklyTotals),
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { color: '#3498db', width: 4 },
+        marker: { color: '#e74c3c', size: 12, line: { color: '#ffffff', width: 2 } }
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        xaxis: { gridcolor: 'rgba(52,152,219,0.2)' },
+        yaxis: { gridcolor: 'rgba(52,152,219,0.2)', title: 'Total Stockouts' },
+        margin: { l: 60, r: 20, t: 20, b: 60 }
+    });
+
+    // Heatmap Chart
+    const categories = [...new Set(filteredData.map(d => d.ProductCategory))];
+    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+
+    const heatmapData = weeks.map(week => 
+        categories.map(category => {
+            const record = filteredData.find(d => d.Week === week && d.ProductCategory === category);
+            return record ? record.StockoutIncidents : 0;
+        })
+    );
+
+    Plotly.newPlot('heatmapChart', [{
+        z: heatmapData,
+        x: categories,
+        y: weeks,
+        type: 'heatmap',
+        colorscale: [
+            [0, '#2ecc71'],
+            [0.3, '#f39c12'],
+            [0.7, '#e67e22'],
+            [1, '#e74c3c']
+        ],
+        showscale: true
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        xaxis: { tickangle: -45 },
+        margin: { l: 80, r: 60, t: 20, b: 100 }
+    });
+
+    // Distribution Chart (Histogram)
+    Plotly.newPlot('distributionChart', [{
+        x: filteredData.map(d => d.StockoutIncidents),
+        type: 'histogram',
+        marker: { color: '#3498db', line: { color: '#ffffff', width: 1 } },
+        nbinsx: 10
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        xaxis: { title: 'Stockout Incidents', gridcolor: 'rgba(52,152,219,0.2)' },
+        yaxis: { title: 'Frequency', gridcolor: 'rgba(52,152,219,0.2)' },
+        margin: { l: 60, r: 20, t: 20, b: 60 }
+    });
+
+    // Performance Comparison (Box Plot)
+    const performanceData = categories.map(category => {
+        const categoryData = filteredData.filter(d => d.ProductCategory === category);
+        return {
+            y: categoryData.map(d => d.StockoutIncidents),
+            name: category,
+            type: 'box',
+            marker: { color: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#95a5a6'][categories.indexOf(category)] }
+        };
+    });
+
+    Plotly.newPlot('performanceChart', performanceData, {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        xaxis: { tickangle: -45, gridcolor: 'rgba(52,152,219,0.2)' },
+        yaxis: { title: 'Stockout Incidents', gridcolor: 'rgba(52,152,219,0.2)' },
+        margin: { l: 60, r: 20, t: 20, b: 100 }
+    });
+
+    // Risk Assessment (Pie Chart)
+    const riskCounts = filteredData.reduce((acc, record) => {
+        acc[record.Stockout_Level] = (acc[record.Stockout_Level] || 0) + 1;
+        return acc;
+    }, {});
+
+    Plotly.newPlot('riskChart', [{
+        labels: Object.keys(riskCounts),
+        values: Object.values(riskCounts),
+        type: 'pie',
+        marker: {
+            colors: ['#2ecc71', '#f39c12', '#e67e22', '#e74c3c']
+        },
+        textfont: { color: '#ffffff', family: 'Roboto', size: 14 }
+    }], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#ffffff', family: 'Roboto' },
+        margin: { l: 20, r: 20, t: 20, b: 20 }
+    });
+}
+
+function renderTable() {
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    filteredData.forEach(record => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${record.ProductCategory}</td>
+            <td>${record.Week}</td>
+            <td>${record.StockoutIncidents}</td>
+            <td><span class="stockout-${record.Stockout_Level.toLowerCase()}">${record.Stockout_Level}</span></td>
+            <td>${record.Performance_Score}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function renderDashboard() {
+    updateMetrics();
+    renderCharts();
+    renderTable();
+}
+
+// Export functionality
+function exportData() {
+    const headers = ['ProductCategory', 'Week', 'StockoutIncidents', 'Stockout_Level', 'Performance_Score'];
+    const csvContent = [
+        headers.join(','),
+        ...filteredData.map(record => headers.map(header => record[header]).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventory_filtered_data.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'f') {
+        event.preventDefault();
+        document.getElementById('categoryFilter').focus();
+    }
+    if (event.ctrlKey && event.key === 'r') {
+        event.preventDefault();
+        resetFilters();
+    }
+    if (event.ctrlKey && event.key === 'e') {
+        event.preventDefault();
+        exportData();
+    }
+});
+
+// Auto-refresh data every 30 seconds (simulated)
+setInterval(() => {
+    // In a real application, this would fetch new data
+    showNotification('Data refreshed automatically');
+}, 30000);
+</script>
+</body>
+</html>
