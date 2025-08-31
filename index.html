@@ -254,6 +254,22 @@
     `;
     document.head.appendChild(style);
   </script> -->
+  <!-- n8n Chatbot Embed Script -->
+<div id="n8n-chatbot"></div>
+<script>
+  (function() {
+    const webhookUrl = "YOUR_N8N_WORKFLOW_WEBHOOK_URL"; // Replace with your n8n webhook URL
+    const chatbotContainer = document.getElementById("n8n-chatbot");
+
+    // Create iframe or widget container for chatbot UI
+    const iframe = document.createElement("iframe");
+    iframe.src = webhookUrl;  // This points to your n8n public webhook URL for the chatbot
+    iframe.style = "width: 350px; height: 500px; border: none;";
+
+    chatbotContainer.appendChild(iframe);
+  })();
+</script>
+
 
 
    <!-- Footer with special person names -->
